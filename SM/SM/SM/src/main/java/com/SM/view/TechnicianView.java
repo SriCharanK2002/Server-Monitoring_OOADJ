@@ -27,19 +27,17 @@ public class TechnicianView extends VerticalLayout {
     Monitor mon;
     int bflag=0;
     SecurityService securityService;
-    Image img;
+    Image cpu_img,mem_img,disk_img;
 
     public TechnicianView(SecurityService securityService){
         setAlignItems(Alignment.CENTER);
         setJustifyContentMode(JustifyContentMode.CENTER);
         this.securityService = securityService;
         createHeader();
+        HorizontalLayout h = new HorizontalLayout();
 
-//        Grid<ArrayList> grid = new Grid<>();
-//        grid.addColumn(String::toString).setHeader("String");
         Label layout1 = new Label();
         layout1.getStyle().set("white-space","pre-wrap");
-
 
         Technician tech = new Technician("Technician","Tech@email.com","Tech");
         TextField mon_name = new TextField("Enter Monitor Name");
@@ -61,7 +59,6 @@ public class TechnicianView extends VerticalLayout {
             try {
                 ArrayList<String> ans = tech.viewReport(mon);
                 System.out.println(ans);
-//                grid.setItems(ans);
                 for(String s : ans) {
                     Label label = new Label(s);
                     layout1.add(label);
@@ -83,34 +80,41 @@ public class TechnicianView extends VerticalLayout {
         });
 
         Button genGraph = new Button("Generate Chart",e -> {
+            String serv_name = server_name.getValue();
             InputStreamFactory inputStreamFactory = new InputStreamFactory()
             {
                 @Override
                 public InputStream createInputStream() {
                     try {
-                        return new FileInputStream("chart.png");
+                        return new FileInputStream(serv_name+"_cpuUsage.png");
                     } catch (FileNotFoundException e) {
                         e.printStackTrace();
                         return null;
                     }
                 }
             };
-            String serv_name = server_name.getValue();
             Server s = mon.getServer(serv_name);
             try {
                 tech.generateGraph(s);
             } catch (IOException | ClassNotFoundException | SQLException ex) {
                 throw new RuntimeException(ex);
             }
-            StreamResource resource = new StreamResource("chart.png", inputStreamFactory);
-            if(bflag==1) {
-                remove(img);
+            StreamResource CPUresource = new StreamResource(serv_name+"_cpuUsage.png", inputStreamFactory);
+            StreamResource Memresource = new StreamResource(serv_name+"_memUsage.png", inputStreamFactory);
+            StreamResource Diskresource = new StreamResource(serv_name+"_diskUsage.png", inputStreamFactory);
+            if(bflag == 1) {
+                remove(cpu_img);
+                remove(mem_img);
+                remove(disk_img);
             }
-            bflag=1;
-            img=new Image(resource, "Image not found");
-           add(img);
+            bflag = 1;
+            cpu_img = new Image(CPUresource, "Image not found");
+            mem_img = new Image(Memresource, "Image not found");
+            disk_img = new Image(Diskresource, "Image not found");
+
+            h.add(disk_img,mem_img,disk_img);
         });
-        add(mon_name,deserializeButton,vr,viewRep,layout1,server_name,getLog,genGraph);
+        add(mon_name,deserializeButton,vr,viewRep,layout1,server_name,getLog,genGraph,h);
     }
 
 

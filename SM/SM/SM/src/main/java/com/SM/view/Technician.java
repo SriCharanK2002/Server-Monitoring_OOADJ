@@ -67,31 +67,73 @@ class Technician extends Personnel{
         UpdateSQL uSQL = new UpdateSQL();
         ResultSet rs = uSQL.GetData(server);
         ArrayList<Float> cpuUsage = new ArrayList<>();
+        ArrayList<Float> memUsage = new ArrayList<>();
+        ArrayList<Float> diskUsage = new ArrayList<>();
         ArrayList<Timestamp> times = new ArrayList<>();
         while(rs.next()) {
             float CPU = Float.parseFloat(rs.getString("cpu"));
             cpuUsage.add(CPU);
+            float Mem = Float.parseFloat(rs.getString("mem"));
+            memUsage.add(Mem);
+            float disk = Float.parseFloat(rs.getString("disk"));
+            diskUsage.add(disk);
             Timestamp createdAt = rs.getTimestamp("TS");
             times.add(createdAt);
         }
-
-        TimeSeries series = new TimeSeries("CPU Usage");
+        String name = server.GetHostName();
+        //CPU usage
+        TimeSeries CPUseries = new TimeSeries("CPU Usage");
         for (int i = 0; i < cpuUsage.size(); i++) {
-            series.addOrUpdate(new Minute(times.get(i)), cpuUsage.get(i));
+            CPUseries.addOrUpdate(new Minute(times.get(i)), cpuUsage.get(i));
         }
-        // Create a chart with the time series
-        JFreeChart chart = ChartFactory.createTimeSeriesChart(
+        JFreeChart CPUchart = ChartFactory.createTimeSeriesChart(
                 "CPU Usage",
                 "Time",
                 "CPU Usage",
-                new TimeSeriesCollection(series),
+                new TimeSeriesCollection(CPUseries),
                 true,
                 true,
                 false
         );
-        ChartPanel chartPanel = new ChartPanel(chart);
-        BufferedImage image = chartPanel.getChart().createBufferedImage(500,300);
-        File graphOut = new File("chart.png");
-        ImageIO.write(image,"png",graphOut);
+        ChartPanel CPUpanel = new ChartPanel(CPUchart);
+        BufferedImage CPUimage = CPUpanel.getChart().createBufferedImage(500,300);
+        File CPUgraph = new File(name+"_cpuUsage.png");
+        ImageIO.write(CPUimage,"png",CPUgraph);
+
+        TimeSeries Memseries = new TimeSeries("Memory Usage");
+        for (int i = 0; i < cpuUsage.size(); i++) {
+            Memseries.addOrUpdate(new Minute(times.get(i)), cpuUsage.get(i));
+        }
+        JFreeChart Memchart = ChartFactory.createTimeSeriesChart(
+                "Memory Usage",
+                "Time",
+                "Mem Usage",
+                new TimeSeriesCollection(CPUseries),
+                true,
+                true,
+                false
+        );
+        ChartPanel Mempanel = new ChartPanel(Memchart);
+        BufferedImage Memimage = CPUpanel.getChart().createBufferedImage(500,300);
+        File Memgraph = new File(name+"_memUsage.png");
+        ImageIO.write(Memimage,"png",Memgraph);
+
+        TimeSeries Diskseries = new TimeSeries("Disk Usage");
+        for (int i = 0; i < cpuUsage.size(); i++) {
+            Diskseries.addOrUpdate(new Minute(times.get(i)), cpuUsage.get(i));
+        }
+        JFreeChart Diskchart = ChartFactory.createTimeSeriesChart(
+                "Disk Usage",
+                "Time",
+                "Disk Usage",
+                new TimeSeriesCollection(CPUseries),
+                true,
+                true,
+                false
+        );
+        ChartPanel Diskpanel = new ChartPanel(Diskchart);
+        BufferedImage Diskimage = Diskpanel.getChart().createBufferedImage(500,300);
+        File Diskgraph = new File(name+"_diskUsage.png");
+        ImageIO.write(Diskimage,"png",Diskgraph);
     }
 }
